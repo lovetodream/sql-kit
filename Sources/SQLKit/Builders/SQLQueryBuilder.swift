@@ -12,6 +12,8 @@ public protocol SQLQueryBuilder: AnyObject {
     var database: SQLDatabase { get }
 
     func run() -> EventLoopFuture<Void>
+    
+    func runRecordingPerformance() -> EventLoopFuture<SQLQueryPerformanceRecord>
 }
 
 extension SQLQueryBuilder {
@@ -22,5 +24,17 @@ extension SQLQueryBuilder {
     /// - returns: A future signaling completion.
     public func run() -> EventLoopFuture<Void> {
         return self.database.execute(sql: self.query) { _ in }
+    }
+    
+    /// Runs the query, keeping track performance metrics when supported by the database driver.
+    ///
+    ///     builder.runRecordingPerformance().map {
+    ///         builder.database.logger.info("Query performance: \($0.description)")
+    ///     }
+    ///
+    /// - returns: A future signaling completion and containing any perforamnce metrics which\
+    ///   were successfully measured.
+    public func runRecordingPerformance() -> EventLoopFuture<SQLQueryPerformanceRecord> {
+        return self.database.execute(sqlWithPerformanceTracking: self.query) { _ in }
     }
 }
