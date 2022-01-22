@@ -1,10 +1,9 @@
-import Collections
 import Dispatch
 import Foundation
 import NIOPosix
 
 public struct SQLQueryPerformanceRecord: Codable {
-    private var metrics: OrderedDictionary<Metric, Value> = [:]
+    private var metrics: [Metric: Value] = [:]
     
     public init() {}
     
@@ -23,8 +22,6 @@ public struct SQLQueryPerformanceRecord: Codable {
     /// Record a generic value for a metric. If the specified metric already has a recorded
     /// value, it is overwritten.
     ///
-    /// The order in which metrics are recorded is considered significant and is preserved.
-    ///
     /// This method is not intended for general use; a performance record is not intended to
     /// be a data bag any more than the tracing library's baggage type is. It is public so that
     /// the various Fluent subsystems and drivers can use it.
@@ -34,7 +31,7 @@ public struct SQLQueryPerformanceRecord: Codable {
     
     /// Return an ordered list of all recorded metrics and their values.
     public func allMetrics() -> [(Metric, Value)] {
-        Array(self.metrics.elements)
+        self.metrics.map { $0 }
     }
 }
 
@@ -171,7 +168,7 @@ extension SQLQueryPerformanceRecord {
     /// are treated as if the missing value is zero. Flag and note metrics are ignored in the "incoming" record,
     /// and deleted if they exist in the current record.
     public mutating func aggregate(record: Self) {
-        self.metrics.removeAll(where: { !$1.isNumeric })
+        self.metrics.filter({ !$1.isNumeric }).forEach { _ = self.metrics.removeValue(forKey: $0.key) }
         self.metrics.merge(record.metrics.filter { $1.isNumeric }) {
             switch ($0, $1) {
                 case let (.duration(l), .duration(r)): return .duration(l + r)
@@ -300,8 +297,5 @@ extension SQLQueryPerformanceRecord.Value {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SQLQueryPerformanceRecord: Sendable {}
 extension SQLQueryPerformanceRecord.Metric: Sendable {}
-
-// TODO: TEMPORARY, NEEDS TO BE REVISED!
-// FIXME: REMOVE THIS CONFORMANCE ASAP!
-extension OrderedDictionary: @unchecked Sendable {}
+extension SQLQueryPerformanceRecord.Value: Sendable {}
 #endif
