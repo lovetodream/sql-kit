@@ -109,6 +109,11 @@ extension SQLQueryPerformanceRecord.Metric {
     /// The number of bound parameters, if any, for a query.
     public static var boundParameterCount: Self { .init(string: "codes.vapor.sqlkit.metric.paramsCount") }
     
+    /// The number of result rows, if any, returned from a query. This metric has a value, even
+    /// if it is zero, if any attempt to retrieve results - including `RETURNING` clauses - was
+    /// made. If it has no value at all, the query did not check for or return any results.
+    public static var returnedResultRowCount: Self { .init(string: "codes.vapor.sqlkit.metric.resultCount") }
+    
     /// A flag indicating whether a database query was processed via SQLKit (versus FluentKit).
     public static var fluentBypassFlag: Self { .init(string: "codes.vapor.sqlkit.metric.sqlkit-is-best-kit")}
 }
