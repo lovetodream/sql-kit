@@ -173,6 +173,27 @@ public protocol SQLDialect {
     ///
     /// Defaults to `true`.
     var supportsMultiRowInsert: Bool { get }
+
+    /// The dialect's default action for foreign key constraints.
+    ///
+    /// Some dialects do have a default action that is not supported to be set explicitly.
+    /// This is the case for Oracle, which does not support setting `ON DELETE NO ACTION`,
+    /// even though it is the default behaviour if nothing else is set.
+    ///
+    /// An example to set this up could be the following snippet.
+    /// ```
+    /// var defaultForeignKeyAction: SQLForeignKeyAction? { .noAction }
+    /// var foreignKeyActions: [SQLForeignKeyAction] { [.noAction, .cascade, .setNull] }
+    /// ```
+    ///
+    /// Defaults to `nil`.
+    var defaultForeignKeyAction: SQLForeignKeyAction? { get }
+
+    /// A set of feature flags describing the dialect's support for foreign key constraints. See ``SQLForeignKeyAction``
+    /// for the possible options and more information.
+    ///
+    /// Defaults to indicating support for all.
+    var foreignKeyActions: [SQLForeignKeyAction] { get }
 }
 
 /// Controls `ALTER TABLE` syntax.
@@ -330,4 +351,6 @@ extension SQLDialect {
     public var sharedSelectLockExpression: SQLExpression? { nil }
     public var exclusiveSelectLockExpression: SQLExpression? { nil }
     public var supportsMultiRowInsert: Bool { true }
+    public var defaultForeignKeyAction: SQLForeignKeyAction? { nil }
+    public var foreignKeyActions: [SQLForeignKeyAction] { [.cascade, .noAction, .restrict, .setDefault, .setNull] }
 }

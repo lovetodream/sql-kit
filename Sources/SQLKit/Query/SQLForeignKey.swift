@@ -26,11 +26,17 @@ public struct SQLForeignKey: SQLExpression {
         serializer.write(" ")
         SQLGroupExpression(self.columns).serialize(to: &serializer)
 
-        if let onDelete = self.onDelete {
+        if
+            let onDelete = self.onDelete,
+            (onDelete as? SQLForeignKeyAction) != serializer.dialect.defaultForeignKeyAction
+        {
             serializer.write(" ON DELETE ")
             onDelete.serialize(to: &serializer)
         }
-        if let onUpdate = self.onUpdate {
+        if
+            let onUpdate = self.onUpdate,
+            (onUpdate as? SQLForeignKeyAction) != serializer.dialect.defaultForeignKeyAction
+        {
             serializer.write(" ON UPDATE ")
             onUpdate.serialize(to: &serializer)
         }

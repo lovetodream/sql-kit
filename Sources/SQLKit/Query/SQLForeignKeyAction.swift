@@ -19,6 +19,10 @@ public enum SQLForeignKeyAction: SQLExpression {
     case setDefault
     
     public func serialize(to serializer: inout SQLSerializer) {
+        if !serializer.dialect.foreignKeyActions.contains(self) {
+            serializer.database.logger.warning("Database does not support \(self). You will need to rewrite your statement.")
+        }
+
         switch self {
         case .noAction: serializer.write("NO ACTION")
         case .restrict: serializer.write("RESTRICT")
